@@ -1,0 +1,10 @@
+[project]
+name = "Bonk Utilities"
+version = "1.0.4"
+authors = [{ name = "Pyrex" }]
+description = "Some useful/fun stuff, more keybinds than you have keys on your keyboard lol. Most of this stuff should work on BL3 & WL"
+
+[tool.sdkmod]
+name = "Bonk Utilities"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+version = "1.0.4"

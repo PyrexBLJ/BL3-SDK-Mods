@@ -1,0 +1,10 @@
+[project]
+name = "DamageLogger"
+version = "1.0.0"
+authors = [{ name = "Pyrex" }]
+description = "Print the real amount of damage you deal in a single hit to the console."
+
+[tool.sdkmod]
+name = "Damage Logger"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+version = "1.0.0"

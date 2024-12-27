@@ -1,0 +1,10 @@
+[project]
+name = "earl_vendor_upgrades"
+version = "1.0.3"
+authors = [{ name = "Pyrex" }]
+description = "Adds dlc mission items to the crazy earl's veteran rewards vendor in sanctuary. Just set the settings, and reload sactuary.\nOnce added to the vendor, these will appear in even if you havent started the dlc the item is from."
+
+[tool.sdkmod]
+name = "Earl's DLC Vendor"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+version = "1.0.3"

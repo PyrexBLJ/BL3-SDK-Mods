@@ -1,0 +1,10 @@
+[project]
+name = "diamondchestconfig"
+version = "1.0.0"
+authors = [{ name = "Pyrex" }]
+description = "Some diamond chest room options"
+
+[tool.sdkmod]
+name = "Diamond Loot Config"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+version = "1.0.0"

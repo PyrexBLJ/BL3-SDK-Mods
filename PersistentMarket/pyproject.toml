@@ -1,0 +1,10 @@
+[project]
+name = "PersistentMarket"
+version = "1.0.0"
+authors = [{ name = "Pyrex" }]
+description = "No more 30 minute lockout on the black market vendor and red chests"
+
+[tool.sdkmod]
+name = "Persistent Market"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+version = "1.0.0"

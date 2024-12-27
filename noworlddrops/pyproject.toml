@@ -1,0 +1,10 @@
+[project]
+name = "noworlddrops"
+version = "1.0.5"
+authors = [{ name = "Pyrex" }]
+description = "Turns out changing the drop rates (other than just removing them) mid play session really doesnt work out great, many things will stick with the old drop rates. If you really want everything to work at the new rate you chose your best bet is to select the new option then restart the game. If i can find a fix for this i will add it but tbh im not sure theres anything i can really do about it."
+
+[tool.sdkmod]
+name = "Configurable World Drops"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+version = "1.0.5"
