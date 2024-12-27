@@ -5,7 +5,7 @@ from argparse import Namespace
 import unrealsdk
 
 from typing import Any
-from mods_base import build_mod, get_pc, keybind, hook, SliderOption, BoolOption, command, GroupedOption
+from mods_base import build_mod, get_pc, keybind, hook, SliderOption, BoolOption, command, GroupedOption, Game
 from unrealsdk.hooks import Type
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
@@ -73,6 +73,7 @@ def dash() -> None:
     if pcon.OakCharacter.OakCharacterMovement.CurrentFloor.bBlockingHit == False and currentdashes < int(DashNumberSlider.value):
         getAxisMap()
         AxisMapping = axismap.Axis.Keys
+        AxisMappingWL = unrealsdk.find_all("InputSettings")[0].AxisMappings # fuck you wonderlands i hate you so much i spent HOURS looking for where rebound keys are saved and u just fuckin yeeted that entire part of the game you piece of shit im so mad.
 
         dashSpeed = DashSpeedSlider.value
         
@@ -89,24 +90,44 @@ def dash() -> None:
         IsBackPressed = False
 
         if UseController.value == False:
-            IsForwardPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key) # W
-            IsRightPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key) # D
-            IsLeftPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: -1.0, Y: 0.0, Z: 0.0}")].Key) # A
-            IsBackPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: 0.0, Y: -1.0, Z: 0.0}")].Key) # S
+            if Game.get_current() is Game.BL3:
+                IsForwardPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key) # W
+                IsRightPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key) # D
+                IsLeftPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: -1.0, Y: 0.0, Z: 0.0}")].Key) # A
+                IsBackPressed = get_pc().IsInputKeyDown(AxisMapping[findKeyForAction("{X: 0.0, Y: -1.0, Z: 0.0}")].Key) # S
+            elif Game.get_current() is Game.WL:
+                IsForwardPressed = get_pc().IsInputKeyDown(AxisMappingWL[0].Key)
+                IsRightPressed = get_pc().IsInputKeyDown(AxisMappingWL[2].Key)
+                IsLeftPressed = get_pc().IsInputKeyDown(AxisMappingWL[3].Key)
+                IsBackPressed = get_pc().IsInputKeyDown(AxisMappingWL[1].Key)
         else:
-            if get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key) > 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key)) == True:
-                IsForwardPressed = True
-                IsBackPressed = False
-            elif get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key) < 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key)) == True:
-                IsForwardPressed = False
-                IsBackPressed = True
-            if get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key) > 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key)) == True:
-                IsRightPressed = True
-                IsLeftPressed = False
-            elif get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key) < 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key)) == True:
-                IsRightPressed = False
-                IsLeftPressed = True
-        
+            if Game.get_current() is Game.BL3:
+                if get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key) > 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key)) == True:
+                    IsForwardPressed = True
+                    IsBackPressed = False
+                elif get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key) < 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 0.0, Y: 1.0, Z: 0.0}")].Key)) == True:
+                    IsForwardPressed = False
+                    IsBackPressed = True
+                if get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key) > 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key)) == True:
+                    IsRightPressed = True
+                    IsLeftPressed = False
+                elif get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key) < 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMapping[findKeyForAction("{X: 1.0, Y: 0.0, Z: 0.0}")].Key)) == True:
+                    IsRightPressed = False
+                    IsLeftPressed = True
+            elif Game.get_current() is Game.WL:
+                if get_pc().GetInputAnalogKeyState(AxisMappingWL[29].Key) > 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMappingWL[29].Key)) == True:
+                    IsForwardPressed = True
+                    IsBackPressed = False
+                elif get_pc().GetInputAnalogKeyState(AxisMappingWL[29].Key) < 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMappingWL[29].Key)) == True:
+                    IsForwardPressed = False
+                    IsBackPressed = True
+                if get_pc().GetInputAnalogKeyState(AxisMappingWL[30].Key) > 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMappingWL[30].Key)) == True:
+                    IsRightPressed = True
+                    IsLeftPressed = False
+                elif get_pc().GetInputAnalogKeyState(AxisMappingWL[30].Key) < 0 and outsideDeadzone(get_pc().GetInputAnalogKeyState(AxisMappingWL[30].Key)) == True:
+                    IsRightPressed = False
+                    IsLeftPressed = True
+
         if IsForwardPressed:
             velocity = unrealsdk.make_struct("Vector", X=(forwardVelocity.X), Y=(forwardVelocity.Y), Z=(forwardVelocity.Z))
             

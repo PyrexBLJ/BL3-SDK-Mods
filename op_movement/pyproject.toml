@@ -1,10 +1,10 @@
 [project]
 name = "op_movement"
-version = "1.0.3"
+version = "1.0.4"
 authors = [{ name = "Pyrex" }]
 description = "Very broken movement mechanics that i found very fun. Now with controller support!\n\nCommands: setmaxjumps\nsetmaxdashes"
 
 [tool.sdkmod]
 name = "OP Movement"
 license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
-version = "1.0.3"
+version = "1.0.4"
