@@ -7,4 +7,6 @@ description = "Print the real amount of damage you deal in a single hit to the c
 [tool.sdkmod]
 name = "Damage Logger"
 license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+supported_games = ["BL3", "WL"]
+download = "https://github.com/PyrexBLJ/BL3-SDK-Mods/raw/refs/heads/main/DamageLogger/DamageLogger.sdkmod"
 version = "1.0.0"
