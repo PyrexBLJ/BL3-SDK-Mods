@@ -17,11 +17,11 @@ setpricesgroup: GroupedOption = GroupedOption("Apply Changes", [setprices])
 def setinfo() -> None:
     chestobject = None
     if chest.value == "Diamond Chest":
-        chestobject = unrealsdk.find_object("UsableTypeDefinition", "/Game/PatchDLC/DiamondLootChest/InteractiveObjects/chestobject/Data/UIData_DiamondKeyUsePrompt.UIData_DiamondKeyUsePrompt")
+        chestobject = unrealsdk.find_object("UsableTypeDefinition", "/Game/PatchDLC/DiamondLootChest/InteractiveObjects/DiamondChest/Data/UIData_DiamondKeyUsePrompt.UIData_DiamondKeyUsePrompt")
     elif chest.value == "Golden Chest":
         chestobject = unrealsdk.find_object("UsableTypeDefinition", "/Game/UI/InteractionPrompt/UIData_GoldenKey.UIData_GoldenKey")
     else:
-        chestobject = unrealsdk.find_object("UsableTypeDefinition", "/Game/PatchDLC/DiamondLootChest/InteractiveObjects/chestobject/Data/UIData_DiamondKeyUsePrompt.UIData_DiamondKeyUsePrompt")
+        chestobject = unrealsdk.find_object("UsableTypeDefinition", "/Game/PatchDLC/DiamondLootChest/InteractiveObjects/DiamondChest/Data/UIData_DiamondKeyUsePrompt.UIData_DiamondKeyUsePrompt")
         print("Invalid chest selection, defaulting to diamond chest")
 
 
