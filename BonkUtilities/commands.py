@@ -28,9 +28,17 @@ def addCurrency(args: Namespace) -> None:
         get_pc().ServerUpdatePremiumCurrency(unrealsdk.find_object("InventoryCategoryData", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_DiamondKey.InventoryCategory_DiamondKey"), int(args.amount))
         print(f"Added {int(args.amount)} Diamond Key(s)")
 
-    elif str(args.currency).lower() == "eridium":
+    elif str(args.currency).lower() == "eridium" or str(args.currency).lower() == "moonorb":
         get_pc().ServerAddCurrency(int(args.amount), unrealsdk.find_object("InventoryCategoryData", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Eridium.InventoryCategory_Eridium"))
-        print(f"Added {int(args.amount)} Eridium")
+        print(f"Added {int(args.amount)} Eridium / Moon Orbs")
+    
+    elif str(args.currency).lower() == "soul":
+        get_pc().ServerAddCurrency(int(args.amount), unrealsdk.find_object("InventoryCategoryData", "/Game/PatchDLC/Indigo1/Common/Pickups/IndCurrency/InventoryCategory_IndCurrency.InventoryCategory_IndCurrency"))
+        print(f"Added {int(args.amount)} Souls")
+    
+    elif str(args.currency).lower() == "crystal":
+        get_pc().ServerAddCurrency(int(args.amount), unrealsdk.find_object("InventoryCategoryData", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Cookie.InventoryCategory_Cookie"))
+        print(f"Added {int(args.amount)} Crystals")
 
     elif str(args.currency).lower() == "goldkey":
         get_pc().ServerUpdatePremiumCurrency(unrealsdk.find_object("InventoryCategoryData", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_GoldenKey.InventoryCategory_GoldenKey"), int(args.amount))
@@ -49,7 +57,7 @@ def addCurrency(args: Namespace) -> None:
         print(f"Added {int(args.amount)} Vault Card 3 Key(s)")
 
     else:
-        print(f"{str(args.currency)} is not a valid currency. These are: money, eridium, goldkey, diamondkey, vaultcard1key, vaultcard2key, vaultcard3key. Max Value 2147483647")
+        print(f"{str(args.currency)} is not a valid currency. These are: money, eridium, moonorb, soul, crystal, goldkey, diamondkey, vaultcard1key, vaultcard2key, vaultcard3key. Max Value 2147483647")
 
 addCurrency.add_argument("currency", help="name of currency to change")
 addCurrency.add_argument("amount", help="i think you can figure this one out")

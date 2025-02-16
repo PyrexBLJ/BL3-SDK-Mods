@@ -99,12 +99,12 @@ def deletePickups() -> None:
     if SellItemsOnDelete.value == True: # doing this check in the loop is no bueno
         combinedvalue: int = 0
         while numberofitems > 0:
-            if "RarityData_00_Mission" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData):
+            if "RarityData_00_Mission" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData) and "GunRack" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex]):
                 if SellLegendariesOnDelete.value == True or SellLegendariesOnDelete.value == False and "Legendary" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData):
                     try:
                         combinedvalue += ENGINE.GameViewport.World.GameState.PickupList[deleteindex].CachedInventoryBalanceComponent.MonetaryValue
                     except:
-                        print("no monetary value on this item, just deletin it")
+                        print(f"no monetary value on this item, just deletin it: {str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex])}")
                     ENGINE.GameViewport.World.GameState.PickupList[deleteindex].K2_DestroyActor_DEPRECATED()
                     numberofitems -= 1
                 else:
@@ -116,7 +116,7 @@ def deletePickups() -> None:
         get_pc().ServerAddCurrency(combinedvalue, unrealsdk.find_object("InventoryCategoryData", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Money.InventoryCategory_Money"))
     else:
         while numberofitems > 0:
-            if "RarityData_00_Mission" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData):
+            if "RarityData_00_Mission" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData) and "GunRack" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex]):
                 if SellLegendariesOnDelete.value == True or SellLegendariesOnDelete.value == False and "Legendary" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData):
                     ENGINE.GameViewport.World.GameState.PickupList[deleteindex].K2_DestroyActor_DEPRECATED()
                     numberofitems -= 1
@@ -213,6 +213,12 @@ def damageNumbers() -> None:
     for damagecomp in unrealsdk.find_all("OakDamageComponent", exact=False):
         damagecomp.bShowDamageNumbers = damageNumbers
     show_hud_message("Bonk Utilities", f"Show Damage Numbers: {str(damageNumbers)}")
+
+@keybind("Refresh Vendor Inventories", description="Gives all loaded vendors a new inventory")
+def refreshVendors() -> None:
+    ENGINE.GameViewport.World.GameState.LocalSecondsBeforeShopsReset = 0
+    ENGINE.GameViewport.World.GameState.ReplicatedSecondsBeforeShopsReset = 0
+    show_hud_message("Bonk Utilities", f"Refreshed Shop Inventories")
 
 
 
