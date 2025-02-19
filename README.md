@@ -26,4 +26,4 @@ Disables the functionality of the quit to desktop button while in game. For BL3 
 Lets you set the drop rates or completely remove world drop legendaries in bl3. For BL3.
 
 ![OP Movement](https://github.com/PyrexBLJ/BL3-SDK-Mods/tree/main/op_movement)
-Adds dashing and multi jumping, with options to set the boost power and number of dashes/jumps allowed bwfore having to touch the ground again. For BL3 & WL.
+Adds dashing and multi jumping, with options to set the boost power and number of dashes/jumps allowed before having to touch the ground again. For BL3 & WL.
