@@ -17,7 +17,7 @@ from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 
 
 
-LegendaryDropRate: DropdownOption = DropdownOption("World Drop Rate", "Normal (x1)", ["Quad (x4)", "Double (x2)", "Normal (x1)", "Half (x0.5)", "Quarter (x0.25)", "No World Drops"], description="These will usually set on map load, if set pools automatically is on yes. otherwise drops will not be changed.\nIf changing to a new setting mid play session it is highly recommended to set the new value then restart the game, some things only grab their drop rates the first time they are loaded.\nNo World Drops will use the old system to remove the drops rather than the new system to set rates.\n\nIf switching from No World Drops to another option press the [red](Old System) Manually add world drops back[/red] button.")
+LegendaryDropRate: DropdownOption = DropdownOption("World Drop Rate", "Normal (x1)", ["x16", "x8", "Quad (x4)", "Double (x2)", "Normal (x1)", "Half (x0.5)", "Quarter (x0.25)", "No World Drops"], description="These will usually set on map load, if set pools automatically is on yes. otherwise drops will not be changed.\nIf changing to a new setting mid play session it is highly recommended to set the new value then restart the game, some things only grab their drop rates the first time they are loaded.\nNo World Drops will use the old system to remove the drops rather than the new system to set rates.\n\nIf switching from No World Drops to another option press the [red](Old System) Manually add world drops back[/red] button.")
 cansetthepools: BoolOption = BoolOption("Set pools automatically", True, "Yes", "No")
 manualremovedrops: ButtonOption = ButtonOption("(Old System) Manually remove world drops", on_press = lambda _: removeTheDrops())
 manualadddrops: ButtonOption = ButtonOption("(Old System) Manually add world drops back", on_press = lambda _: readdTheDrops())
@@ -437,7 +437,11 @@ def setvendorpools(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction
 def GetValueOfAttributeHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
     if "Att_LocalRarityModifier_05_Legendary" in str(args.Attribute) and cansetthepools.value == True:
         print("Setting Drop Rate...")
-        if LegendaryDropRate.value == "Quad (x4)":
+        if LegendaryDropRate.value == "x16":
+            return Block, 32000.0
+        elif LegendaryDropRate.value == "x8":
+            return Block, 16000.0
+        elif LegendaryDropRate.value == "Quad (x4)":
             return Block, 8000.0
         elif LegendaryDropRate.value == "Double (x2)":
             return Block, 4000.0

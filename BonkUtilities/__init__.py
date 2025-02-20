@@ -23,11 +23,12 @@ HUDVisible: bool = True
 damageNumbers: bool = True
 
 
-if Game.get_current() is Game.BL3:
-    blockQTD: BoolOption = BoolOption("Disable Quit to Desktop Btn", True, "Yes", "No")
+blockQTD: BoolOption = BoolOption("Disable Quit to Desktop Btn", True, "Yes", "No")
 FlySpeedSlider: SliderOption = SliderOption("Noclip Speed", 600, 600, 25000, 100, True)
 SellItemsOnDelete: BoolOption = BoolOption("Sell deleted dropped items", False, "Yes", "No", description="This [red]WILL[/red] cause a lag spike")
 SellLegendariesOnDelete: BoolOption = BoolOption("Sell/Delete Legendaries", False, "Yes", "No", description="Yes = legendaries will be sold/deleted\nNo = legendaries will stay on the ground")
+SellCurrenciesOnDelete: BoolOption = BoolOption("Sell/Delete Currencies", False, "Yes", "No", description="Yes = Currencies like monel/eridium etc will be sold/deleted\nNo = Currencies will stay on the ground")
+GroundItemsGroup: NestedOption = NestedOption("Sell/Delete Ground Items", [SellItemsOnDelete, SellLegendariesOnDelete, SellCurrenciesOnDelete], description="All the options for the Delete Dropped items hotkey")
 DeleteCorpses: BoolOption = BoolOption("Use Override Corpse Removal Time", True, "Yes", "No")
 CorpseDespawnTime: SliderOption = SliderOption("Corpse Despawn Time in Seconds", 5.0, 0.1, 30.0, 0.1, False)
 ConsoleFontSize: SliderOption = SliderOption("Console Font Size", 10, 1, 64, 1, True, on_change = lambda _, new_value: setConsoleFontSize(_, new_value))
@@ -96,17 +97,21 @@ def deletePickups() -> None:
     ognumberofitems: int = len(ENGINE.GameViewport.World.GameState.PickupList)
     numberofitems: int = len(ENGINE.GameViewport.World.GameState.PickupList)
     deleteindex: int = 0
-    if SellItemsOnDelete.value == True: # doing this check in the loop is no bueno
+    if SellItemsOnDelete.value == True:
         combinedvalue: int = 0
         while numberofitems > 0:
             if "RarityData_00_Mission" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData) and "GunRack" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex]):
                 if SellLegendariesOnDelete.value == True or SellLegendariesOnDelete.value == False and "Legendary" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData):
-                    try:
-                        combinedvalue += ENGINE.GameViewport.World.GameState.PickupList[deleteindex].CachedInventoryBalanceComponent.MonetaryValue
-                    except:
-                        print(f"no monetary value on this item, just deletin it: {str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex])}")
-                    ENGINE.GameViewport.World.GameState.PickupList[deleteindex].K2_DestroyActor_DEPRECATED()
-                    numberofitems -= 1
+                    if SellCurrenciesOnDelete.value == True or SellCurrenciesOnDelete.value == False and str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].PickupCategory).split("'")[1] not in ("/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Eridium.InventoryCategory_Eridium", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Money.InventoryCategory_Money", "/Game/PatchDLC/Indigo1/Common/Pickups/IndCurrency/InventoryCategory_IndCurrency.InventoryCategory_IndCurrency"):
+                        try:
+                            combinedvalue += ENGINE.GameViewport.World.GameState.PickupList[deleteindex].CachedInventoryBalanceComponent.MonetaryValue
+                        except:
+                            print(f"no monetary value on this item, just deletin it: {str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex])}")
+                        ENGINE.GameViewport.World.GameState.PickupList[deleteindex].K2_DestroyActor_DEPRECATED()
+                        numberofitems -= 1
+                    else:
+                        deleteindex += 1
+                        numberofitems -= 1
                 else:
                     deleteindex += 1
                     numberofitems -= 1
@@ -118,8 +123,12 @@ def deletePickups() -> None:
         while numberofitems > 0:
             if "RarityData_00_Mission" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData) and "GunRack" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex]):
                 if SellLegendariesOnDelete.value == True or SellLegendariesOnDelete.value == False and "Legendary" not in str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].AssociatedInventoryRarityData):
-                    ENGINE.GameViewport.World.GameState.PickupList[deleteindex].K2_DestroyActor_DEPRECATED()
-                    numberofitems -= 1
+                    if SellCurrenciesOnDelete.value == True or SellCurrenciesOnDelete.value == False and str(ENGINE.GameViewport.World.GameState.PickupList[deleteindex].PickupCategory).split("'")[1] not in ("/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Eridium.InventoryCategory_Eridium", "/Game/Gear/_Shared/_Design/InventoryCategories/InventoryCategory_Money.InventoryCategory_Money", "/Game/PatchDLC/Indigo1/Common/Pickups/IndCurrency/InventoryCategory_IndCurrency.InventoryCategory_IndCurrency"):
+                        ENGINE.GameViewport.World.GameState.PickupList[deleteindex].K2_DestroyActor_DEPRECATED()
+                        numberofitems -= 1
+                    else:
+                        deleteindex += 1
+                        numberofitems -= 1
                 else:
                     deleteindex += 1
                     numberofitems -= 1
@@ -233,6 +242,12 @@ if Game.get_current() is Game.BL3:
         if blockQTD.value == True and args.ChoiceNameId == "QuitToDesktop":
             return Block
         else: return None
+if Game.get_current() is Game.WL:
+    @hook("/Script/OakGame.OakUIDataCollector_CommonMenu:OnLeaveGameChoiceMade", Type.PRE)
+    def checkQTDWL(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
+        if blockQTD.value == True and args.ChoiceNameId == "QuitToDesktop":
+            return Block
+        else: return None
 
 @hook("/Script/OakGame.OakCharacter_Player:ClientEnterPhotoMode", Type.PRE)
 def resetTimescalePM(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
@@ -337,10 +352,5 @@ def GetDataTableValueHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundF
     return
 
 """
-gameoptions: list = []
-if Game.get_current() is Game.BL3:
-    gameoptions = [blockQTD, FlySpeedSlider, SellItemsOnDelete, SellLegendariesOnDelete, DeleteCorpses, CorpseDespawnTime, ConsoleFontSize, PhotoModeUnlock]
-elif Game.get_current() is Game.WL:
-    gameoptions = [FlySpeedSlider, SellItemsOnDelete, SellLegendariesOnDelete, DeleteCorpses, CorpseDespawnTime, ConsoleFontSize, PhotoModeUnlock]
 
-build_mod(options=gameoptions)
+build_mod(options=[blockQTD, FlySpeedSlider, GroundItemsGroup, DeleteCorpses, CorpseDespawnTime, ConsoleFontSize, PhotoModeUnlock])
