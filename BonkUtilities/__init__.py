@@ -29,9 +29,11 @@ SellItemsOnDelete: BoolOption = BoolOption("Sell deleted dropped items", False, 
 SellLegendariesOnDelete: BoolOption = BoolOption("Sell/Delete Legendaries", False, "Yes", "No", description="Yes = legendaries will be sold/deleted\nNo = legendaries will stay on the ground")
 SellCurrenciesOnDelete: BoolOption = BoolOption("Sell/Delete Currencies", False, "Yes", "No", description="Yes = Currencies like monel/eridium etc will be sold/deleted\nNo = Currencies will stay on the ground")
 GroundItemsGroup: NestedOption = NestedOption("Sell/Delete Ground Items", [SellItemsOnDelete, SellLegendariesOnDelete, SellCurrenciesOnDelete], description="All the options for the Delete Dropped items hotkey")
+DisableVendorPreview: SpinnerOption = SpinnerOption("Disable Vendor Preview", "No", ["No", "Always", "Only in Takedowns"], True, description="Disables the item of the day preview when looking at a vendor\n\nNo = Vanilla behaviour\nAlways = remove it completely\nOnly in Takedowns = leave it vanilla but remove it in takedown maps")
 DeleteCorpses: BoolOption = BoolOption("Use Override Corpse Removal Time", True, "Yes", "No")
 CorpseDespawnTime: SliderOption = SliderOption("Corpse Despawn Time in Seconds", 5.0, 0.1, 30.0, 0.1, False)
 ConsoleFontSize: SliderOption = SliderOption("Console Font Size", 10, 1, 64, 1, True, on_change = lambda _, new_value: setConsoleFontSize(_, new_value))
+LoadingScreenFadeTime: SliderOption = SliderOption("Loading Screen Fade In/Out Time", 0.5, 0, 1, 0.1, False, description="How much time the loading screen takes to fade in and out, 0.5 is the default", on_change = lambda _, new_value: setLoadingScreenFade(_, new_value))
 UsePhotoModeTweaks: BoolOption = BoolOption("Enable Photo Mode Unlock", True, "Yes", "No")
 PhotoModeSpeed: SliderOption = SliderOption("Photo Mode Camera Speed", 800, 100, 800, 1, True, description="Default is 100, 800 in Apoc's mod")
 PhotoModeCollisionRadius: SliderOption = SliderOption("Photo Mode Camera Collision Radius", 0, 0, 30, 1, True, description="Default is 30, 0 in Apoc's mod")
@@ -41,15 +43,35 @@ PhotoModeUnlock: NestedOption = NestedOption("Photo Mode Unlock", [UsePhotoModeT
 # Set console font size on game load
 unrealsdk.find_object("Font", "/Engine/EngineFonts/Roboto.Roboto").LegacyFontSize = int(ConsoleFontSize.value)
 
+# Set loading screen fade time on game load
+ENGINE.GameInstance.LoadingScreenFadeTime = LoadingScreenFadeTime.value
+
+def setLoadingScreenFade(_: SliderOption, new_value: float) -> None:
+    ENGINE.GameInstance.LoadingScreenFadeTime = new_value
+    return None
+
 def setConsoleFontSize(_: SliderOption, new_value: int) -> None:
     unrealsdk.find_object("Font", "/Engine/EngineFonts/Roboto.Roboto").LegacyFontSize = int(new_value)
+    return None
+
+def ShowMessage(title: str, message: str, duration: int = 2) -> None:
+    duration = duration * ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation
+    #if get_pc().CurrentOakProfile.TutorialInfo.bTutorialsDisabled == False:
+        #data = unrealsdk.construct_object("TutorialMessageDataAsset", outer=ENGINE.Outer)
+        #data.Header = title
+        #data.Body = message
+        #data.Duration = duration
+        #get_pc().ClientAddTutorialMessage(data)
+    #else:
+    show_hud_message(title, message, duration)
+    return None
 
 
 @keybind("God Mode")
 def god() -> None:
     pcon = get_pc()
     pcon.OakCharacter.OakDamageComponent.bGodMode = not pcon.OakCharacter.OakDamageComponent.bGodMode
-    show_hud_message("Bonk Utilities", f"God Mode: {str(pcon.OakCharacter.OakDamageComponent.bGodMode)}")
+    ShowMessage("Bonk Utilities", f"God Mode: {str(pcon.OakCharacter.OakDamageComponent.bGodMode)}")
 
 @keybind("Noclip")
 def test1() -> None:
@@ -66,7 +88,7 @@ def test1() -> None:
         pcon.OakCharacter.OakDamageComponent.MinimumDamageLaunchVelocity = 370
         pcon.OakCharacter.OakCharacterMovement.MaxFlySpeed.Value = 600
     noclip = not noclip
-    show_hud_message("Bonk Utilities", f"Noclip: {str(noclip)}")
+    ShowMessage("Bonk Utilities", f"Noclip: {str(noclip)}")
 
 
 @keybind("Speed Up Time")
@@ -75,7 +97,7 @@ def test2() -> None:
         ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = 1
     else:
         ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation * 2
-    show_hud_message("Bonk Utilities", f"Game Speed: {str(ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation)}")
+    ShowMessage("Bonk Utilities", f"Game Speed: {str(ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation)}")
 
 @keybind("Slow Down Time")
 def test3() -> None:
@@ -83,14 +105,14 @@ def test3() -> None:
         ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = 1
     else:
         ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation / 2
-    show_hud_message("Bonk Utilities", f"Game Speed: {str(ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation)}")
+    ShowMessage("Bonk Utilities", f"Game Speed: {str(ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation)}")
 
 @keybind("Reset Cooldowns")
 def cooldowns() -> None:
     for pool in get_pc().OakCharacter.ResourcePoolComponent.ResourcePools:
         if "Cooldown" in str(pool.ResourcePoolData) or "Spell" in str(pool.ResourcePoolData) or "Respawn" in str(pool.ResourcePoolData):
             pool.CurrentValue = pool.MaxValue.Value
-    show_hud_message("Bonk Utilities", "Cooldowns Reset")
+    ShowMessage("Bonk Utilities", "Cooldowns Reset")
 
 @keybind("Delete Dropped Items")
 def deletePickups() -> None:
@@ -135,7 +157,7 @@ def deletePickups() -> None:
             else:
                 deleteindex += 1
                 numberofitems -= 1
-    show_hud_message("Bonk Utilities", f"{ognumberofitems - deleteindex} Items Deleted")
+    ShowMessage("Bonk Utilities", f"{ognumberofitems - deleteindex} Items Deleted")
     
 
 @keybind("Self Revive")
@@ -161,13 +183,13 @@ def cycleCameraMode() -> None:
 
     if currentcameramode == 0:
         get_pc().OakPlayerCameraManager.CameraModesManager.CurrentMode = firstpersoncamera
-        show_hud_message("Bonk Utilities", f"Set First Person")
+        ShowMessage("Bonk Utilities", f"Set First Person")
     elif currentcameramode == 1:
         get_pc().OakPlayerCameraManager.CameraModesManager.CurrentMode = thirdpersoncamera
-        show_hud_message("Bonk Utilities", f"Set Third Person")
+        ShowMessage("Bonk Utilities", f"Set Third Person")
     elif currentcameramode == 2:
         get_pc().OakPlayerCameraManager.CameraModesManager.CurrentMode = fixedcamera
-        show_hud_message("Bonk Utilities", f"Set Fixed Camera")
+        ShowMessage("Bonk Utilities", f"Set Fixed Camera")
     return None
 
 @keybind("Toggle HUD")
@@ -213,7 +235,7 @@ def sellGroundItem() -> None:
 def noTarget() -> None:
     get_pc().TeamComponent.bIsTargetableByNonPlayers = not get_pc().TeamComponent.bIsTargetableByNonPlayers
     get_pc().TeamComponent.bIsTargetableByAIPlayers = not get_pc().TeamComponent.bIsTargetableByAIPlayers
-    show_hud_message("Bonk Utilities", f"NoTarget: {str(not get_pc().TeamComponent.bIsTargetableByNonPlayers)}")
+    ShowMessage("Bonk Utilities", f"NoTarget: {str(not get_pc().TeamComponent.bIsTargetableByNonPlayers)}")
 
 @keybind("Show Damage Numbers", description="This has been changed, shouldnt crash anymore and wont persist across game boots.")
 def damageNumbers() -> None:
@@ -221,13 +243,13 @@ def damageNumbers() -> None:
     damageNumbers = not damageNumbers
     for damagecomp in unrealsdk.find_all("OakDamageComponent", exact=False):
         damagecomp.bShowDamageNumbers = damageNumbers
-    show_hud_message("Bonk Utilities", f"Show Damage Numbers: {str(damageNumbers)}")
+    ShowMessage("Bonk Utilities", f"Show Damage Numbers: {str(damageNumbers)}")
 
 @keybind("Refresh Vendor Inventories", description="Gives all loaded vendors a new inventory")
 def refreshVendors() -> None:
     ENGINE.GameViewport.World.GameState.LocalSecondsBeforeShopsReset = 0
     ENGINE.GameViewport.World.GameState.ReplicatedSecondsBeforeShopsReset = 0
-    show_hud_message("Bonk Utilities", f"Refreshed Shop Inventories")
+    ShowMessage("Bonk Utilities", f"Refreshed Shop Inventories")
 
 
 
@@ -268,7 +290,7 @@ def resetTimescalePM(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFuncti
 
     if ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation != 1:
         ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = 1
-        show_hud_message("Bonk Utilities", f"Game Speed: {str(ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation)}")
+        ShowMessage("Bonk Utilities", f"Game Speed: {str(ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation)}")
     return None
 
 @hook("/Script/OakGame.OakCharacter_Player:ClientExitPhotoMode", Type.PRE)
@@ -313,6 +335,18 @@ def enemyDied(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> 
     except:
         pass
     return None
+
+@hook("/Script/OakGame.GFxVendingMachinePrompt:OnLookedAtByPlayer", Type.PRE)
+def disableVendorPreview(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
+    if "ItemOfTheDay" in str(obj):
+        if DisableVendorPreview.value == "No":
+            return None
+        elif DisableVendorPreview.value == "Always":
+            return Block
+        elif DisableVendorPreview.value == "Only in Takedowns" and str(ENGINE.GameViewport.World.CurrentLevel) in ("Level'/Game/PatchDLC/Raid1/Maps/Raid/Raid_P.Raid_P:PersistentLevel'", "Level'/Game/PatchDLC/Takedown2/Maps/GuardianTakedown_P.GuardianTakedown_P:PersistentLevel'"):
+            return Block
+    return None
+
 """
 @hook("/Game/Gear/Game/Resonator/_Design/Action_Melee_Resonator_Success.Action_Melee_Resonator_Success_C:ExecuteUbergraph_Action_Melee_Resonator_Success", Type.POST)
 def bitchinator(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
@@ -334,13 +368,6 @@ def spentPoint(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) ->
     print(args)
     return None
 
-@hook("/Script/GbxGameSystemCore.GbxAttributeFunctionLibrary:GetValueOfAttribute", Type.PRE)
-def GetValueOfAttributeHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
-    if str(args.Attribute) in ("/Game/GameData/Balance/GameStageOffsets/AttCalc_GameStage_Exact.AttCalc_GameStage_Exact", "/Game/GameData/Balance/GameStageOffsets/AttCalc_GameStage_MinorVariance.AttCalc_GameStage_MinorVariance", "/Game/GameData/Balance/GameStageOffsets/AttCalc_GameStage_Plus1.AttCalc_GameStage_Plus1"):
-        return Block, 50
-    else:
-        return None
-
 @hook("/Script/GbxGameSystemCore.GbxDataTableFunctionLibrary:GetDataTableValueFromHandle", Type.POST)
 def GetDataTableValueFromHandleHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
     print(f"GetDataTableValueFromHandle: {str(args)} | {str(_3)}")
@@ -353,4 +380,4 @@ def GetDataTableValueHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundF
 
 """
 
-build_mod(options=[blockQTD, FlySpeedSlider, GroundItemsGroup, DeleteCorpses, CorpseDespawnTime, ConsoleFontSize, PhotoModeUnlock])
+build_mod(options=[blockQTD, FlySpeedSlider, GroundItemsGroup, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])

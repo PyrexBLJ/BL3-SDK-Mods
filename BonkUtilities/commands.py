@@ -1,12 +1,12 @@
 from argparse import Namespace
 import unrealsdk
-from mods_base import get_pc, command
+from mods_base import get_pc, command, ENGINE
 
 activePlayer: int = -1
 
 @command("buhelp", description="list of available commands")
 def help(args: Namespace) -> None:
-    print("Commands:\n[command] --help for more details on specific commands\nsend_mail [datatable] [rowname]\naddcurrency [currencytype] [amount]\nmaxlevel\ngiveitem [location] [itemserial]\ngiveitemfrompool [pool]\nmaxsdus\nenablegr\nsetguardianrank [rank]\nsetguardiantokens [tokens]\ngiveskillpoints [points]\ntogglemayhem [value]\ngetmayhemseed\nsetmayhemseed [seed]")
+    print("Commands:\n[command] --help for more details on specific commands\nsend_mail [datatable] [rowname]\naddcurrency [currencytype] [amount]\nmaxlevel\ngiveitem [location] [itemserial]\ngiveitemfrompool [pool]\nmaxsdus\nenablegr\nsetguardianrank [rank]\nsetguardiantokens [tokens]\ngiveskillpoints [points]\ntogglemayhem [value]\ngetmayhemseed\nsetmayhemseed [seed]\ngivebooster [booster name/type]")
 
 @command("send_mail", description="takes a datatable and rowname to recieve items in your mailbox")
 def sendMail(args: Namespace) -> None:
@@ -135,13 +135,39 @@ toggleMayhemMode.add_argument("value", help="True or False")
 
 @command("getmayhemseed", description="print the numbers that determine what modifiers you have, to be used with setmayhemseed command")
 def getMayhemSeed(args: Namespace) -> None:
-    print(f"Mayhem {str(get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.MayhemLevel)} Modifier Bits (ActiveSetsBits): {str(get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.ReplicableSets.ActiveSetsBits)} RandomSeed: {str(get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.RandomSeed)}")
+    print(f"Mayhem {str(get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.MayhemLevel)} Seed: {str(get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.RandomSeed)}\nWith the modifiers:")
+    for mod in ENGINE.GameInstance.ModifierManagers[0].ActiveModifierSets[1:]:
+        print(f"{mod.UIStats[0].Text}: {mod.UIStats[0].Description}")
 
-@command("setmayhemseed", description="change your current modifier set, this shit dont fuckin work")
+@command("setmayhemseed", description="change your current modifier set")
 def setMayhemSeed(args: Namespace) -> None:
-    get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.ReplicableSets.ActiveSetsBits = int(args.bits)
-    get_pc().OakHud.GFxBossBar.OakGameState.MayhemModeState.RandomSeed = int(args.seed)
-    print("Mayhem Modifiers Set, Travel to a new map and back")
+    get_pc().ServerRequestMayhemReload(int(args.mayhemlevel), int(args.seed))
+    print("Mayhem Modifiers Set, Reloading the map")
 
-setMayhemSeed.add_argument("bits", help="value for active modifier bits")
+setMayhemSeed.add_argument("mayhemlevel", help="what mayhem level this seed is for")
 setMayhemSeed.add_argument("seed", help="value for random seed")
+
+@command("givebooster", description="apply a citizen science booster to yourself")
+def giveBooster(args: Namespace) -> None:
+    if str(args.booster) in ("Brain Nanobots", "xp"):
+        get_pc().ServerApplyCitizenScienceBooster(0, 7200)
+        print("Brain Nanobots (2h) Applied")
+    elif str(args.booster) in ("Lucky Jabber Foot", "cash"):
+        get_pc().ServerApplyCitizenScienceBooster(1, 7200)
+        print("Lucky Jabber Foot (2h) Applied")
+    elif str(args.booster) in ("Caffeine Caplets", "speed"):
+        get_pc().ServerApplyCitizenScienceBooster(2, 7200)
+        print("Caffeine Caplets (2h) Applied")
+    elif str(args.booster) in ("Jabber-Cola", "damage"):
+        get_pc().ServerApplyCitizenScienceBooster(3, 3600)
+        print("Jabber-Cola (1h) Applied")
+    elif str(args.booster) in ("Elemental Powder", "element"):
+        get_pc().ServerApplyCitizenScienceBooster(4, 3600)
+        print("Elemental Powder (1h) Applied")
+    elif str(args.booster) in ("Butt Stallion Milk", "loot"):
+        get_pc().ServerApplyCitizenScienceBooster(5, 3600)
+        print("Butt Stallion Milk (1h) Applied")
+    else:
+        print("No valid booster provided, use one from this list\n\n    Brain Nanobots - xp\n    Lucky Jabber Foot - cash\n    Caffeine Caplets - speed\n    Jabber-Cola - damage\n    Elemental Powder - element\n    Butt Stallion Milk - loot")
+
+giveBooster.add_argument("booster", help="what booster to set:\n\n    Brain Nanobots - xp\n    Lucky Jabber Foot - cash\n    Caffeine Caplets - speed\n    Jabber-Cola - damage\n    Elemental Powder - element\n    Butt Stallion Milk - loot")
