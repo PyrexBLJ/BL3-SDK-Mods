@@ -23,6 +23,10 @@ FlakLoadouts: NestedOption = NestedOption("Flak Loadouts", [])
 MozeLoadouts: NestedOption = NestedOption("Moze Loadouts", [])
 AmaraLoadouts: NestedOption = NestedOption("Amara Loadouts", [])
 
+if not os.path.exists(f"{SETTINGS_DIR}\\SkillTreeSaver"):
+    os.makedirs(f"{SETTINGS_DIR}\\SkillTreeSaver")
+    print("Created save folder")
+
 def getSavedTrees() -> None:
     global savedZaneLoadouts, savedFlakLoadouts, savedMozeLoadouts, savedAmaraLoadouts
 
