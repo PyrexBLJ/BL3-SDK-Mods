@@ -1,6 +1,6 @@
 [project]
 name = "SkillTreeSaver"
-version = "1.0.1"
+version = "1.0.2"
 authors = [{ name = "Pyrex" }]
 description = "Save and load skill tree loadouts"
 
@@ -9,4 +9,4 @@ name = "Skill Tree Saver"
 license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
 supported_games = ["BL3"]
 download = "https://github.com/PyrexBLJ/BL3-SDK-Mods/raw/refs/heads/main/SkillTreeSaver/SkillTreeSaver.sdkmod"
-version = "1.0.1"
+version = "1.0.2"

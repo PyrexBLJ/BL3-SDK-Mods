@@ -17,28 +17,44 @@ savedZaneLoadouts: list = []
 savedFlakLoadouts: list = []
 savedMozeLoadouts: list = []
 savedAmaraLoadouts: list = []
-
 ZaneLoadouts: NestedOption = NestedOption("Zane Loadouts", [])
 FlakLoadouts: NestedOption = NestedOption("Flak Loadouts", [])
 MozeLoadouts: NestedOption = NestedOption("Moze Loadouts", [])
 AmaraLoadouts: NestedOption = NestedOption("Amara Loadouts", [])
+
+dsavedZaneLoadouts: list = []
+dsavedFlakLoadouts: list = []
+dsavedMozeLoadouts: list = []
+dsavedAmaraLoadouts: list = []
+dZaneLoadouts: NestedOption = NestedOption("Zane Loadouts", [])
+dFlakLoadouts: NestedOption = NestedOption("Flak Loadouts", [])
+dMozeLoadouts: NestedOption = NestedOption("Moze Loadouts", [])
+dAmaraLoadouts: NestedOption = NestedOption("Amara Loadouts", [])
 
 if not os.path.exists(f"{SETTINGS_DIR}\\SkillTreeSaver"):
     os.makedirs(f"{SETTINGS_DIR}\\SkillTreeSaver")
     print("Created save folder")
 
 def getSavedTrees() -> None:
-    global savedZaneLoadouts, savedFlakLoadouts, savedMozeLoadouts, savedAmaraLoadouts
+    global savedZaneLoadouts, savedFlakLoadouts, savedMozeLoadouts, savedAmaraLoadouts, dsavedZaneLoadouts, dsavedFlakLoadouts, dsavedMozeLoadouts, dsavedAmaraLoadouts
 
+    # for loading
     savedZaneLoadouts = []
     savedFlakLoadouts = []
     savedMozeLoadouts = []
     savedAmaraLoadouts = []
 
+    # for deleting
+    dsavedZaneLoadouts = []
+    dsavedFlakLoadouts = []
+    dsavedMozeLoadouts = []
+    dsavedAmaraLoadouts = []
+
     for filename in os.listdir(f"{SETTINGS_DIR}/SkillTreeSaver"):
         file = open(f"{SETTINGS_DIR}/SkillTreeSaver/{filename}", "r")
         temploadout: Loadout = json.load(file)
         file.close()
+
         if temploadout["character"] == "Zane":
             savedZaneLoadouts.append(ButtonOption(f"{filename.removesuffix(".json")}", on_press = lambda _: load(_.identifier)))
         if temploadout["character"] == "FL4K":
@@ -48,12 +64,27 @@ def getSavedTrees() -> None:
         if temploadout["character"] == "Amara":
             savedAmaraLoadouts.append(ButtonOption(f"{filename.removesuffix(".json")}", on_press = lambda _: load(_.identifier)))
 
+        if temploadout["character"] == "Zane":
+            dsavedZaneLoadouts.append(ButtonOption(f"[red]Delete[/red] {filename.removesuffix(".json")}", on_press = lambda _: delete(_.identifier)))
+        if temploadout["character"] == "FL4K":
+            dsavedFlakLoadouts.append(ButtonOption(f"[red]Delete[/red] {filename.removesuffix(".json")}", on_press = lambda _: delete(_.identifier)))
+        if temploadout["character"] == "Moze":
+            dsavedMozeLoadouts.append(ButtonOption(f"[red]Delete[/red] {filename.removesuffix(".json")}", on_press = lambda _: delete(_.identifier)))
+        if temploadout["character"] == "Amara":
+            dsavedAmaraLoadouts.append(ButtonOption(f"[red]Delete[/red] {filename.removesuffix(".json")}", on_press = lambda _: delete(_.identifier)))
+
     ZaneLoadouts.children = savedZaneLoadouts
     FlakLoadouts.children = savedFlakLoadouts
     MozeLoadouts.children = savedMozeLoadouts
     AmaraLoadouts.children = savedAmaraLoadouts
 
+    dZaneLoadouts.children = dsavedZaneLoadouts
+    dFlakLoadouts.children = dsavedFlakLoadouts
+    dMozeLoadouts.children = dsavedMozeLoadouts
+    dAmaraLoadouts.children = dsavedAmaraLoadouts
+
     return None
+
 
 getSavedTrees()
 
@@ -71,6 +102,7 @@ SaveCurrentLoadout: ButtonOption = ButtonOption("Save Your Current Skill Tree", 
 
 SaveGroup: GroupedOption = GroupedOption("Save Skill Tree", [SaveCurrentLoadout])
 LoadGroup: GroupedOption = GroupedOption("Load Skill Tree", [ZaneLoadouts, FlakLoadouts, MozeLoadouts, AmaraLoadouts])
+DeleteGroup: GroupedOption = GroupedOption("Delete Saved Trees", [dZaneLoadouts, dFlakLoadouts, dMozeLoadouts, dAmaraLoadouts])
 
 currentloadout: Loadout = {
     "character": "None",
@@ -183,4 +215,24 @@ def loadcommand(args: Namespace) -> None:
 
 loadcommand.add_argument("loadout", help="The name of the loadout file you want to load")
 
-build_mod(options=[nameGroup, SaveGroup, LoadGroup])
+
+def delete(loadoutname: str) -> None:
+    loadoutname = loadoutname.removeprefix("[red]Delete[/red] ")
+    if os.path.exists(f"{SETTINGS_DIR}/SkillTreeSaver/{loadoutname}.json"):
+        os.remove(f"{SETTINGS_DIR}/SkillTreeSaver/{loadoutname}.json")
+        print(f"deleted {loadoutname}.json")
+        show_hud_message("[actionskill]Deleted Successfully[/actionskill]", f"[skillbold]{loadoutname}[/skillbold] Skill Tree Deleted.")
+        getSavedTrees()
+    else:
+        print(f"{loadoutname}.json does not exist, cant delete it.")
+        show_hud_message("[red]Error[/red]", f"[skillbold]{loadoutname}[/skillbold] doesn't exist.")
+    return None
+
+@command("deleteloadout")
+def deletecommand(args: Namespace) -> None:
+    delete(args.loadout)
+    return None
+
+deletecommand.add_argument("loadout", help="The name of the loadout file you want to delete")
+
+build_mod(options=[nameGroup, SaveGroup, LoadGroup, DeleteGroup])
