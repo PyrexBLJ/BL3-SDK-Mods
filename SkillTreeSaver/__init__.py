@@ -1,4 +1,6 @@
 from argparse import Namespace
+import threading
+import time
 import unrealsdk #type: ignore
 from mods_base import get_pc, build_mod, SETTINGS_DIR, command, NestedOption, ButtonOption, GroupedOption, ENGINE, SliderOption #type: ignore
 from ui_utils import show_hud_message #type: ignore
@@ -119,22 +121,14 @@ def saveTheGame() -> bool: # this feels super scuffed but it gets the skills int
         elif station == desiredstation:
             pass
         else:
-            station.PlayerEnteredArea(get_pc())
-            station.PlayerExitedArea(get_pc())
-            desiredstation.PlayerEnteredArea(get_pc())
-            print("Skill Tree Saver: game saved")
+            station.OnTravelStationActivated(desiredstation)
+            desiredstation.OnTravelStationActivated(station)
+            print("Skill Tree Saver: trying to save the game")
             return True
     return False
 
-def save() -> None:
-    if saveTheGame() == False:
-        print(f"[ERROR] Unable to forcefully save the game, try going to a different map and resave")
-        show_hud_message("[red]Error[/red]", "Unable to forcefully save the game, go to a new map")
-        return None
-    if os.path.exists(f"{SETTINGS_DIR}/SkillTreeSaver/{get_pc().CurrentSaveGame.PreferredCharacterName}.json"):
-        print(f"[ERROR] {SETTINGS_DIR}/SkillTreeSaver/{get_pc().CurrentSaveGame.PreferredCharacterName}.json already exists! Will not save over it.")
-        show_hud_message("[red]Error[/red]", "Tried to overwrite existing save, not doin it.")
-        return None
+def saveTrees() -> None:
+    time.sleep(0.5)
     ac: list = []
     aca: list = []
     skill: list = []
@@ -157,9 +151,23 @@ def save() -> None:
     file = open(f"{SETTINGS_DIR}/SkillTreeSaver/{get_pc().CurrentSaveGame.PreferredCharacterName}.json", "a")
     json.dump(currentloadout, file)
     file.close()
-    getSavedTrees()
     print(f"Saved {get_pc().CurrentSaveGame.PreferredCharacterName} Skill Trees")
     show_hud_message("[skillScreenGreen]Saved Successfully[/skillScreenGreen]", f"[skillbold]{get_pc().CurrentSaveGame.PreferredCharacterName}[/skillbold] Skill Trees Saved.")
+    getSavedTrees()
+    return None
+
+def save() -> None:
+    if saveTheGame() == False:
+        print(f"[ERROR] Unable to forcefully save the game, try going to a different map and resave")
+        show_hud_message("[red]Error[/red]", "Unable to forcefully save the game, go to a new map")
+        return None
+    if os.path.exists(f"{SETTINGS_DIR}/SkillTreeSaver/{get_pc().CurrentSaveGame.PreferredCharacterName}.json"):
+        print(f"[ERROR] {SETTINGS_DIR}/SkillTreeSaver/{get_pc().CurrentSaveGame.PreferredCharacterName}.json already exists! Will not save over it.")
+        show_hud_message("[red]Error[/red]", "Tried to overwrite existing save, not doin it.")
+        return None
+    
+    threading.Thread(target=saveTrees).start()
+    
     return None
 
 @command("saveloadout")
