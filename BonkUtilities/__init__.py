@@ -32,6 +32,7 @@ GroundItemsGroup: NestedOption = NestedOption("Sell/Delete Ground Items", [SellI
 DisableVendorPreview: SpinnerOption = SpinnerOption("Disable Vendor Preview", "No", ["No", "Always", "Only in Takedowns"], True, description="Disables the item of the day preview when looking at a vendor\n\nNo = Vanilla behaviour\nAlways = remove it completely\nOnly in Takedowns = leave it vanilla but remove it in takedown maps")
 DeleteCorpses: BoolOption = BoolOption("Use Override Corpse Removal Time", True, "Yes", "No")
 CorpseDespawnTime: SliderOption = SliderOption("Corpse Despawn Time in Seconds", 5.0, 0.1, 30.0, 0.1, False)
+MaxGroundItems: SliderOption = SliderOption("Max Ground Items", 400, 400, 1000, 1, True, on_change = lambda _, new_value: setMaxGroundItems(_, new_value), description="How many items are allowed to be on the ground/in chests before they start getting deleted. 400 is default")
 ConsoleFontSize: SliderOption = SliderOption("Console Font Size", 10, 1, 64, 1, True, on_change = lambda _, new_value: setConsoleFontSize(_, new_value))
 LoadingScreenFadeTime: SliderOption = SliderOption("Loading Screen Fade In/Out Time", 0.5, 0, 1, 0.1, False, description="How much time the loading screen takes to fade in and out, 0.5 is the default", on_change = lambda _, new_value: setLoadingScreenFade(_, new_value))
 UsePhotoModeTweaks: BoolOption = BoolOption("Enable Photo Mode Unlock", True, "Yes", "No")
@@ -64,6 +65,11 @@ def ShowMessage(title: str, message: str, duration: int = 2) -> None:
         #get_pc().ClientAddTutorialMessage(data)
     #else:
     show_hud_message(title, message, duration)
+    return None
+
+def setMaxGroundItems(_: SliderOption, new_value: int) -> None:
+    ENGINE.GameViewport.World.GameState.CleanupPickupTriggerCount = int(new_value)
+    ENGINE.GameViewport.World.GameState.CleanupPickupRemainderCount = int(new_value - 50)
     return None
 
 
@@ -324,6 +330,9 @@ def loadMap(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> No
             thirdpersoncamera = camera
         elif camera.Data.ModeName == "Default":
             firstpersoncamera = camera
+
+    ENGINE.GameViewport.World.GameState.CleanupPickupTriggerCount = int(MaxGroundItems.value)
+    ENGINE.GameViewport.World.GameState.CleanupPickupRemainderCount = int(MaxGroundItems.value - 50)
     return None
 
 @hook("/Script/GbxGameSystemCore.DamageComponent:ReceiveHealthDepleted", Type.PRE)
@@ -380,4 +389,4 @@ def GetDataTableValueHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundF
 
 """
 
-build_mod(options=[blockQTD, FlySpeedSlider, GroundItemsGroup, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])
+build_mod(options=[blockQTD, FlySpeedSlider, GroundItemsGroup, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, MaxGroundItems, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])

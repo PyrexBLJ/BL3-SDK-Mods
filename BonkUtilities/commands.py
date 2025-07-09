@@ -6,7 +6,7 @@ activePlayer: int = -1
 
 @command("buhelp", description="list of available commands")
 def help(args: Namespace) -> None:
-    print("Commands:\n[command] --help for more details on specific commands\nsend_mail [datatable] [rowname]\naddcurrency [currencytype] [amount]\nmaxlevel\ngiveitem [location] [itemserial]\ngiveitemfrompool [pool]\nmaxsdus\nenablegr\nsetguardianrank [rank]\nsetguardiantokens [tokens]\ngiveskillpoints [points]\ntogglemayhem [value]\ngetmayhemseed\nsetmayhemseed [seed]\ngivebooster [booster name/type]")
+    print("Commands:\n[command] --help for more details on specific commands\nsend_mail [datatable] [rowname]\naddcurrency [currencytype] [amount]\nmaxlevel\ngiveitem [location] [itemserial]\ngiveitemfrompool [pool]\nmaxsdus\nenablegr\nsetguardianrank [rank]\nsetguardiantokens [tokens]\ngiveskillpoints [points]\ntogglemayhem [value]\ngetmayhemseed\nsetmayhemseed [seed]\ngivebooster [booster name/type]\nresetcurrentmission")
 
 @command("send_mail", description="takes a datatable and rowname to recieve items in your mailbox")
 def sendMail(args: Namespace) -> None:
@@ -171,3 +171,33 @@ def giveBooster(args: Namespace) -> None:
         print("No valid booster provided, use one from this list\n\n    Brain Nanobots - xp\n    Lucky Jabber Foot - cash\n    Caffeine Caplets - speed\n    Jabber-Cola - damage\n    Elemental Powder - element\n    Butt Stallion Milk - loot")
 
 giveBooster.add_argument("booster", help="what booster to set:\n\n    Brain Nanobots - xp\n    Lucky Jabber Foot - cash\n    Caffeine Caplets - speed\n    Jabber-Cola - damage\n    Elemental Powder - element\n    Butt Stallion Milk - loot")
+
+@command("resetcurrentmission", description="This will reset whatever mission is focused in your mission tracker, probably dont try this just for fun you will lose progress.")
+def resetMission(args: Namespace) -> None:
+    missionindex: int = -1
+    temp = 0
+    for mission in get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList:
+        temp += 1
+        if mission.MissionClass == get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].TrackedMission:
+            missionindex = (temp - 1)
+
+    print(f"In Playthrough: {ENGINE.GameViewport.World.GameState.CurrentPlayThrough}")
+    print(get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].TrackedMission)
+    print(get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex])
+            
+
+    if missionindex != -1:
+        get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex].ActiveObjectiveSet = None
+        get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex].bKickoffPlayed = False
+        get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex].Status = 1
+        tempbool = False
+        howmanytimes = len(get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex].ObjectivesProgress)
+        templist: list = []
+        while howmanytimes > 0:
+            howmanytimes -= 1
+            templist.append(0)
+        get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex].ObjectivesProgress = templist
+
+    print(get_pc().PlayerMissionComponent.MissionPlaythroughs[ENGINE.GameViewport.World.GameState.CurrentPlayThrough - 1].MissionList[missionindex])
+    print("Done, now save quit and travel back to the map where you got this mission from")
+    return None
