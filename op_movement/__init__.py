@@ -74,7 +74,8 @@ def dash() -> None:
         if Game.get_current() is Game.BL3:
             getAxisMap()
             AxisMapping = axismap.Axis.Keys
-        AxisMappingWL = unrealsdk.find_all("InputSettings")[0].AxisMappings # fuck you wonderlands i hate you so much i spent HOURS looking for where rebound keys are saved and u just fuckin yeeted that entire part of the game you piece of shit im so mad.
+        if Game.get_current() is Game.WL:
+            AxisMappingWL = unrealsdk.find_all("InputSettings")[0].AxisMappings # fuck you wonderlands i hate you so much i spent HOURS looking for where rebound keys are saved and u just fuckin yeeted that entire part of the game you piece of shit im so mad.
 
         dashSpeed = DashSpeedSlider.value
         
