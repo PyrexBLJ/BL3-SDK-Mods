@@ -4,7 +4,7 @@ if True:
 import unrealsdk
 
 from typing import Any
-from mods_base import build_mod, get_pc, keybind, hook, ENGINE, SliderOption, SpinnerOption, BoolOption, DropdownOption, Game, NestedOption
+from mods_base import build_mod, get_pc, keybind, hook, ENGINE, SliderOption, SpinnerOption, BoolOption, Game, NestedOption, EInputEvent
 from ui_utils import show_hud_message
 from unrealsdk.hooks import Type, Block
 from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
@@ -25,10 +25,12 @@ damageNumbers: bool = True
 
 blockQTD: BoolOption = BoolOption("Disable Quit to Desktop Btn", True, "Yes", "No")
 FlySpeedSlider: SliderOption = SliderOption("Noclip Speed", 600, 600, 25000, 100, True)
+HoldToFastForwardSpeed: SliderOption = SliderOption("Hold to Fast Forward Speed", 8.0, 0.1, 64.0, 0.1, False)
 SellItemsOnDelete: BoolOption = BoolOption("Sell deleted dropped items", False, "Yes", "No", description="This [red]WILL[/red] cause a lag spike")
 SellLegendariesOnDelete: BoolOption = BoolOption("Sell/Delete Legendaries", False, "Yes", "No", description="Yes = legendaries will be sold/deleted\nNo = legendaries will stay on the ground")
 SellCurrenciesOnDelete: BoolOption = BoolOption("Sell/Delete Currencies", False, "Yes", "No", description="Yes = Currencies like monel/eridium etc will be sold/deleted\nNo = Currencies will stay on the ground")
 GroundItemsGroup: NestedOption = NestedOption("Sell/Delete Ground Items", [SellItemsOnDelete, SellLegendariesOnDelete, SellCurrenciesOnDelete], description="All the options for the Delete Dropped items hotkey")
+DisableBlueTunnel: BoolOption = BoolOption("Disable Blue Tunnel", False, "Yes", "No", on_change= lambda _, new_value: setDisableBlueTunnel(_, new_value))
 DisableVendorPreview: SpinnerOption = SpinnerOption("Disable Vendor Preview", "No", ["No", "Always", "Only in Takedowns"], True, description="Disables the item of the day preview when looking at a vendor\n\nNo = Vanilla behaviour\nAlways = remove it completely\nOnly in Takedowns = leave it vanilla but remove it in takedown maps")
 DeleteCorpses: BoolOption = BoolOption("Use Override Corpse Removal Time", True, "Yes", "No")
 CorpseDespawnTime: SliderOption = SliderOption("Corpse Despawn Time in Seconds", 5.0, 0.1, 30.0, 0.1, False)
@@ -57,7 +59,7 @@ def setConsoleFontSize(_: SliderOption, new_value: int) -> None:
 
 def ShowMessage(title: str, message: str, duration: int = 2) -> None:
     duration = duration * ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation
-    #if get_pc().CurrentOakProfile.TutorialInfo.bTutorialsDisabled == False:
+    #if get_pc().CurrentOakProfile.TutorialInfo.bTutorialsDisabled == False:                    # rly wish this worked reliably it looks pretty cool
         #data = unrealsdk.construct_object("TutorialMessageDataAsset", outer=ENGINE.Outer)
         #data.Header = title
         #data.Body = message
@@ -70,6 +72,24 @@ def ShowMessage(title: str, message: str, duration: int = 2) -> None:
 def setMaxGroundItems(_: SliderOption, new_value: int) -> None:
     ENGINE.GameViewport.World.GameState.CleanupPickupTriggerCount = int(new_value)
     ENGINE.GameViewport.World.GameState.CleanupPickupRemainderCount = int(new_value - 50)
+    return None
+
+def setDisableBlueTunnel(_: BoolOption, new_value: bool) -> None:
+    if new_value == True:
+        disableTravelTunnel()
+    return None
+
+def disableTravelTunnel() -> None:
+    meco = unrealsdk.construct_object("MissionEnableConditionObjective", outer=ENGINE.Outer)
+    meco.ObjectiveRef.Mission = None
+    meco.ObjectiveRef.ObjectiveName = "None"
+    meco.ObjectiveStatus = 0
+    meco.bIgnoreObjectiveBit = False
+    meco.bInvertCondition = True
+    meco.RefreshRate = 0 # once per 3 seconds
+
+    for zonemap in unrealsdk.find_all("ZoneMapData", exact=False):
+        zonemap.SuppressFastTravelTunnelCondition = meco
     return None
 
 
@@ -257,12 +277,28 @@ def refreshVendors() -> None:
     ENGINE.GameViewport.World.GameState.ReplicatedSecondsBeforeShopsReset = 0
     ShowMessage("Bonk Utilities", f"Refreshed Shop Inventories")
 
+@keybind("Kill All", description="Kills all the currently alive enemies")
+def killAll() -> None:
+    pawnlist = unrealsdk.find_all("Pawn", exact=False)
+    for pawn in pawnlist:
+        if get_pc().TeamComponent.IsHostile(pawn):
+            if pawn.DamageComponent.GetCurrentHealth() > 0:
+                pawn.DamageComponent.SetCurrentHealth(0)
+    return None
+
+@keybind("Hold to Fast Forward", event_filter=None)
+def holdToFF(event: EInputEvent) -> None:
+    if event == EInputEvent.IE_Pressed:
+        ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = HoldToFastForwardSpeed.value
+    if event == EInputEvent.IE_Released:
+        ENGINE.GameViewport.World.PersistentLevel.WorldSettings.TimeDilation = 1.0
+    return None
 
 
 
 if Game.get_current() is Game.BL3:
     @hook("/Script/OakGame.GFxPauseMenu:OnQuitChoiceMade", Type.PRE)
-    def checkSQ(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
+    def checkSQ(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> type[Block] | None:
         global firstpersoncamera, thirdpersoncamera, fixedcamera
         firstpersoncamera = None
         thirdpersoncamera = None
@@ -272,13 +308,13 @@ if Game.get_current() is Game.BL3:
         else: return None
 if Game.get_current() is Game.WL:
     @hook("/Script/OakGame.OakUIDataCollector_CommonMenu:OnLeaveGameChoiceMade", Type.PRE)
-    def checkQTDWL(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
+    def checkQTDWL(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> type[Block] | None:
         if blockQTD.value == True and args.ChoiceNameId == "QuitToDesktop":
             return Block
         else: return None
 
 @hook("/Script/OakGame.OakCharacter_Player:ClientEnterPhotoMode", Type.PRE)
-def resetTimescalePM(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
+def resetTimescalePM(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
     global inPhotoMode
     inPhotoMode = True
     if UsePhotoModeTweaks.value == True:
@@ -300,24 +336,13 @@ def resetTimescalePM(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFuncti
     return None
 
 @hook("/Script/OakGame.OakCharacter_Player:ClientExitPhotoMode", Type.PRE)
-def exitPhotoModeHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
+def exitPhotoModeHook(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
     global inPhotoMode
     inPhotoMode = False
     return None
-"""
-@hook("/Script/OakGame.OakPlayerController:MantleReleased", Type.POST)
-def mantleReleasedHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
-    global inPhotoMode
-    if inPhotoMode == True and obj == get_pc():
-        Canvas = unrealsdk.find_object("Canvas", "/Engine/Transient.CanvasObject")
-        XSize: float = Canvas.SizeX
-        YSize: float = Canvas.SizeY
-        unrealsdk.find_all("TestLibrary", exact=False)[0].TakeScreenshot("BL3BonkScreenshot", unrealsdk.make_struct("Vector2D", X=XSize, Y=YSize), True, True)
-        unrealsdk.find_all("PhotoModeController")[-1].TakeScreenshot()
-    return None
-"""
+
 @hook("/Script/OakGame.GFxExperienceBar:extFinishedDim", Type.POST)
-def loadMap(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
+def loadMap(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
     global firstpersoncamera, thirdpersoncamera, fixedcamera, currentcameramode
     currentcameramode = 0
     firstpersoncamera = None
@@ -336,7 +361,7 @@ def loadMap(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> No
     return None
 
 @hook("/Script/GbxGameSystemCore.DamageComponent:ReceiveHealthDepleted", Type.PRE)
-def enemyDied(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
+def enemyDied(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
     try:
         if DeleteCorpses.value == True:
             obj.GetOwner().CorpseState.bOverrideVisibleCorpseRemovalTime = True
@@ -346,7 +371,7 @@ def enemyDied(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> 
     return None
 
 @hook("/Script/OakGame.GFxVendingMachinePrompt:OnLookedAtByPlayer", Type.PRE)
-def disableVendorPreview(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> type[Block] | None:
+def disableVendorPreview(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> type[Block] | None:
     if "ItemOfTheDay" in str(obj):
         if DisableVendorPreview.value == "No":
             return None
@@ -356,37 +381,42 @@ def disableVendorPreview(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFu
             return Block
     return None
 
-"""
-@hook("/Game/Gear/Game/Resonator/_Design/Action_Melee_Resonator_Success.Action_Melee_Resonator_Success_C:ExecuteUbergraph_Action_Melee_Resonator_Success", Type.POST)
-def bitchinator(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
+@hook("/Game/PlayerCharacters/_Shared/_Design/Character/BPChar_Player.BPChar_Player_C:UserConstructionScript", Type.PRE)
+def playerLoaded(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
+    if DisableBlueTunnel.value == True:
+        disableTravelTunnel()
+    return None
+
+@hook("/Script/GbxGameSystemCore.ScreenParticleManagerComponent:ClientShowScreenParticle", Type.PRE)
+def disableBlueTunnel1(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> type[Block] | None:
+    if DisableBlueTunnel.value == True and "/Game/Common/Effects/Systems/DeathAndRevive/PS_Death_Tunnel_Revive_Screen.PS_Death_Tunnel_Revive_Screen" in str(args.Template):
+        return Block
     
     return None
 
+@hook("/Script/GbxGameSystemCore.ScreenParticleManagerComponent:ClientShowScreenParticleEx", Type.PRE)
+def disableBlueTunnel2(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> type[Block] | None:
+    if DisableBlueTunnel.value == True and "/Game/Common/Effects/Systems/DeathAndRevive/PS_Death_Tunnel_Revive_Screen.PS_Death_Tunnel_Revive_Screen" in str(args.Template):
+        return Block
+    
+    return None
 
-ProcessEvent	/Script/GbxGameSystemCore.GbxAction_SimpleAnim:OnAnimEnd	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-ProcessEvent	/Script/GbxGameSystemCore.GbxAction:OnServerEnd	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-ProcessEvent	/Game/PlayerCharacters/Gunner/_Shared/_Design/Character/Melee/Action_Melee_Gunner_Success.Action_Melee_Gunner_Success_C:OnEnd	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-CallFunction	/Game/PlayerCharacters/Gunner/_Shared/_Design/Character/Melee/Action_Melee_Gunner_Success.Action_Melee_Gunner_Success_C:ExecuteUbergraph_Action_Melee_Gunner_Success	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-CallFunction	/Game/PlayerCharacters/_Shared/_Design/Melee/Action_Melee_Base.Action_Melee_Base_C:OnEnd	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-CallFunction	/Game/PlayerCharacters/_Shared/_Design/Melee/Action_Melee_Base.Action_Melee_Base_C:ExecuteUbergraph_Action_Melee_Base	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-CallFunction	/Script/OakGame.OakAction_Anim:K2_SetPlayerMeleeWeaponVisible	/Game/Maps/Zone_0/Prologue/Prologue_P.Prologue_P:PersistentLevel.BPChar_Gunner_C_0.GbxAction.Action_Melee_Gunner_Success_C_1
-
-
+"""
 @hook("/Script/OakGame.OakPlayerAbilityTree:AddPointToAbilityTreeItem", Type.PRE)
-def spentPoint(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
+def spentPoint(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
     print(args)
     return None
 
 @hook("/Script/GbxGameSystemCore.GbxDataTableFunctionLibrary:GetDataTableValueFromHandle", Type.POST)
-def GetDataTableValueFromHandleHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
-    print(f"GetDataTableValueFromHandle: {str(args)} | {str(_3)}")
+def GetDataTableValueFromHandleHook(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
+    print(f"GetDataTableValueFromHandle: {str(args)} | {str(ret)}")
     return None
 
 @hook("/Script/GbxGameSystemCore.GbxDataTableFunctionLibrary:GetDataTableValue", Type.POST)
-def GetDataTableValueHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
-    print(f"GetDataTableValue: {str(args)} | {str(_3)}")
+def GetDataTableValueHook(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
+    print(f"GetDataTableValue: {str(args)} | {str(ret)}")
     return
 
 """
 
-build_mod(options=[blockQTD, FlySpeedSlider, GroundItemsGroup, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, MaxGroundItems, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])
+build_mod(options=[blockQTD, FlySpeedSlider, HoldToFastForwardSpeed, GroundItemsGroup, DisableBlueTunnel, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, MaxGroundItems, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])
