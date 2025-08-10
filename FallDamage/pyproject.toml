@@ -1,0 +1,12 @@
+[project]
+name = "FallDamage"
+version = "1.0.0"
+authors = [{ name = "Pyrex" }]
+description = "That old knee injury is flaring up again, gonna have to take it easy for a while. Until you get that fixed anything more than a small jump really starts to hurt."
+
+[tool.sdkmod]
+name = "Fall Damage"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+supported_games = ["BL3", "WL"]
+download = "https://github.com/PyrexBLJ/BL3-SDK-Mods/raw/refs/heads/main/FallDamage/FallDamage.sdkmod"
+version = "1.0.0"

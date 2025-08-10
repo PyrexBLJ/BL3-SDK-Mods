@@ -279,11 +279,13 @@ def refreshVendors() -> None:
 
 @keybind("Kill All", description="Kills all the currently alive enemies")
 def killAll() -> None:
+    blacklist: list = ["IO_GroundTurret_C"]
     pawnlist = unrealsdk.find_all("Pawn", exact=False)
     for pawn in pawnlist:
-        if get_pc().TeamComponent.IsHostile(pawn):
-            if pawn.DamageComponent.GetCurrentHealth() > 0:
-                pawn.DamageComponent.SetCurrentHealth(0)
+        if get_pc().TeamComponent.IsHostile(pawn) and "Default" not in str(pawn) and "Template" not in str(pawn) and str(pawn).split("'")[0] not in blacklist:
+            if pawn.DamageComponent != None:
+                if pawn.DamageComponent.GetCurrentHealth() > 0:
+                    pawn.DamageComponent.SetCurrentHealth(0)
     return None
 
 @keybind("Hold to Fast Forward", event_filter=None)

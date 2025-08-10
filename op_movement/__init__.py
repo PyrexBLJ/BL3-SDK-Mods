@@ -162,11 +162,10 @@ def IsWalkingHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction)
 
 @hook("/Script/OakGame.OakPlayerController:JumpPressed", Type.PRE)
 def JumpPressedHook(obj: UObject, args: WrappedStruct, _3: Any, _4: BoundFunction) -> None:
-    pcon = get_pc()
-    pcon.OakCharacter.JumpMaxCount = int(JumpNumberSlider.value)
+    obj.OakCharacter.JumpMaxCount = int(JumpNumberSlider.value)
 
-    if pcon.OakCharacter.JumpCurrentCount > 0 and pcon.OakCharacter.JumpCurrentCount < pcon.OakCharacter.JumpMaxCount:
-        pcon.OakCharacter.LaunchCharacter(unrealsdk.make_struct("Vector", X=0, Y=0, Z=int(JumpSpeedSlider.value)), False, True)
+    if obj.OakCharacter.JumpCurrentCount > 0 and obj.OakCharacter.JumpCurrentCount < obj.OakCharacter.JumpMaxCount:
+        obj.OakCharacter.LaunchCharacter(unrealsdk.make_struct("Vector", X=0, Y=0, Z=int(JumpSpeedSlider.value)), False, True)
 
 build_mod(keybinds=[dash], options=[mainsettings, controllersettings])
 
