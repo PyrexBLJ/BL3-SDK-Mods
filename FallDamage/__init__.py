@@ -5,7 +5,7 @@ from unrealsdk.unreal import BoundFunction, UObject, WrappedStruct
 from typing import Any
 
 MaximumDamage: SliderOption = SliderOption("Max Amount of Damage", 50, 25, 100, 1, True, description="The percentage of your total health and shield a max velocity fall will deal as damage, default is 50 so 50% of your max health + max shield.")
-MinimumFallVelocity: SliderOption = SliderOption("Minimum Fall Speed", 1000, 800, 3000, 1, True, description="How fast you have to be fallinf for it to deal any damage, default is 1000.")
+MinimumFallVelocity: SliderOption = SliderOption("Minimum Fall Speed", 1000, 800, 3000, 1, True, description="How fast you have to be falling for it to deal any damage, default is 1000.")
 
 @hook("/Game/PlayerCharacters/_Shared/_Design/Character/BPChar_Player.BPChar_Player_C:OnLanded", Type.PRE)
 def OnLandedHook(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFunction) -> None:
