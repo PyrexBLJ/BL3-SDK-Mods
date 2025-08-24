@@ -33,3 +33,6 @@ Allows you to save and load builds on the fly. For BL3.
 
 ![Fall Damage](https://github.com/PyrexBLJ/BL3-SDK-Mods/tree/main/FallDamage)
 Does what it says on the tin, adds fall damage to BL3.
+
+![Hunt 'Rewards'](https://github.com/PyrexBLJ/BL3-SDK-Mods/tree/main/HuntRewards)
+Adds some punishments to the game to mainly be triggered by hotkeys sent by an external program. "we have crowd control at home" esque. For BL3.
