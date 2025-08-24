@@ -1,0 +1,12 @@
+[project]
+name = "HuntRewards"
+version = "1.1.0"
+authors = [{ name = "Pyrex" }]
+description = "Punishments for the player to be triggered by an external program that can send key presses to the game."
+
+[tool.sdkmod]
+name = "Hunt 'Rewards'"
+license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
+supported_games = ["BL3", "WL"]
+download = "https://github.com/PyrexBLJ/BL3-SDK-Mods/raw/refs/heads/main/HuntRewards/HuntRewards.sdkmod"
+version = "1.1.0"
