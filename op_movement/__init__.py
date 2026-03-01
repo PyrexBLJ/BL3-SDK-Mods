@@ -47,7 +47,7 @@ def outsideDeadzone(value: float) -> bool:
 def getAxisMap() -> None:
     global axismap
     for mapping in unrealsdk.find_all("GbxInputRebindContext"):
-        if "Transient" in str(mapping) and "/Game/PlayerCharacters/_Shared/_Design/Input/Bindings/InputRebindContext_Player_Default.InputRebindContext_Player_Default" in str(mapping.DefaultContext):
+        if "Transient" in str(mapping) and str(mapping.DefaultContext) in ("GbxInputRebindContext'/Game/PlayerCharacters/_Shared/_Design/Input/Bindings/InputRebindContext_Player_Default.InputRebindContext_Player_Default'", "GbxInputRebindContext'/Game/PlayerCharacters/_Shared/_Design/Input/Bindings/InputRebindContext_Player_Classic.InputRebindContext_Player_Classic'"):
             axismap = mapping.AxisBindings[0]
 
 def findKeyForAction(scale: str) -> int:
