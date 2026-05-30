@@ -1,5 +1,5 @@
 [project]
-name = "Bonk Utilities"
+name = "BonkUtilities"
 version = "1.1.0"
 authors = [{ name = "Pyrex" }]
 description = "Some useful/fun stuff, more keybinds than you have keys on your keyboard lol. Most of this stuff should work on BL3 & WL"
