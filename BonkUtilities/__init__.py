@@ -1,5 +1,5 @@
 if True:
-    assert __import__("mods_base").__version_info__ >= (1, 0), "Please update the SDK"
+    assert __import__("mods_base").__version_info__ >= (1, 12), "Please update the SDK"
 
 import unrealsdk
 
@@ -30,24 +30,27 @@ SellItemsOnDelete: BoolOption = BoolOption("Sell deleted dropped items", False, 
 SellLegendariesOnDelete: BoolOption = BoolOption("Sell/Delete Legendaries", False, "Yes", "No", description="Yes = legendaries will be sold/deleted\nNo = legendaries will stay on the ground")
 SellCurrenciesOnDelete: BoolOption = BoolOption("Sell/Delete Currencies", False, "Yes", "No", description="Yes = Currencies like monel/eridium etc will be sold/deleted\nNo = Currencies will stay on the ground")
 GroundItemsGroup: NestedOption = NestedOption("Sell/Delete Ground Items", [SellItemsOnDelete, SellLegendariesOnDelete, SellCurrenciesOnDelete], description="All the options for the Delete Dropped items hotkey")
-DisableBlueTunnel: BoolOption = BoolOption("Disable Blue Tunnel", False, "Yes", "No", on_change= lambda _, new_value: setDisableBlueTunnel(_, new_value))
+DisableBlueTunnel: BoolOption = BoolOption("Disable Blue Tunnel", False, "Yes", "No", on_change_while_enabled = lambda _, new_value: setDisableBlueTunnel(_, new_value))
 DisableVendorPreview: SpinnerOption = SpinnerOption("Disable Vendor Preview", "No", ["No", "Always", "Only in Takedowns"], True, description="Disables the item of the day preview when looking at a vendor\n\nNo = Vanilla behaviour\nAlways = remove it completely\nOnly in Takedowns = leave it vanilla but remove it in takedown maps")
 DeleteCorpses: BoolOption = BoolOption("Use Override Corpse Removal Time", True, "Yes", "No")
 CorpseDespawnTime: SliderOption = SliderOption("Corpse Despawn Time in Seconds", 5.0, 0.1, 30.0, 0.1, False)
-MaxGroundItems: SliderOption = SliderOption("Max Ground Items", 400, 400, 1000, 1, True, on_change = lambda _, new_value: setMaxGroundItems(_, new_value), description="How many items are allowed to be on the ground/in chests before they start getting deleted. 400 is default")
-ConsoleFontSize: SliderOption = SliderOption("Console Font Size", 10, 1, 64, 1, True, on_change = lambda _, new_value: setConsoleFontSize(_, new_value))
-LoadingScreenFadeTime: SliderOption = SliderOption("Loading Screen Fade In/Out Time", 0.5, 0, 1, 0.1, False, description="How much time the loading screen takes to fade in and out, 0.5 is the default", on_change = lambda _, new_value: setLoadingScreenFade(_, new_value))
+MaxGroundItems: SliderOption = SliderOption("Max Ground Items", 400, 400, 1000, 1, True, on_change_while_enabled = lambda _, new_value: setMaxGroundItems(_, new_value), description="How many items are allowed to be on the ground/in chests before they start getting deleted. 400 is default")
+ConsoleFontSize: SliderOption = SliderOption("Console Font Size", 10, 1, 64, 1, True, on_change_while_enabled = lambda _, new_value: setConsoleFontSize(_, new_value))
+LoadingScreenFadeTime: SliderOption = SliderOption("Loading Screen Fade In/Out Time", 0.5, 0, 1, 0.1, False, description="How much time the loading screen takes to fade in and out, 0.5 is the default", on_change_while_enabled = lambda _, new_value: setLoadingScreenFade(_, new_value))
 UsePhotoModeTweaks: BoolOption = BoolOption("Enable Photo Mode Unlock", True, "Yes", "No")
 PhotoModeSpeed: SliderOption = SliderOption("Photo Mode Camera Speed", 800, 100, 800, 1, True, description="Default is 100, 800 in Apoc's mod")
 PhotoModeCollisionRadius: SliderOption = SliderOption("Photo Mode Camera Collision Radius", 0, 0, 30, 1, True, description="Default is 30, 0 in Apoc's mod")
 PhotoModeUnlock: NestedOption = NestedOption("Photo Mode Unlock", [UsePhotoModeTweaks, PhotoModeSpeed, PhotoModeCollisionRadius], description="This is an sdk port of Apocalyptech's Photo Mode Unlock hotfix mod, settings will apply when you enter photo mode")
 
 
-# Set console font size on game load
-unrealsdk.find_object("Font", "/Engine/EngineFonts/Roboto.Roboto").LegacyFontSize = int(ConsoleFontSize.value)
+def Enable() -> None:
+    # Set console font size on game load
+    unrealsdk.find_object("Font", "/Engine/EngineFonts/Roboto.Roboto").LegacyFontSize = int(ConsoleFontSize.value)
 
-# Set loading screen fade time on game load
-ENGINE.GameInstance.LoadingScreenFadeTime = LoadingScreenFadeTime.value
+    # Set loading screen fade time on game load
+    ENGINE.GameInstance.LoadingScreenFadeTime = LoadingScreenFadeTime.value
+    return None
+
 
 def setLoadingScreenFade(_: SliderOption, new_value: float) -> None:
     ENGINE.GameInstance.LoadingScreenFadeTime = new_value
@@ -421,4 +424,4 @@ def GetDataTableValueHook(obj: UObject, args: WrappedStruct, ret: Any, func: Bou
 
 """
 
-build_mod(options=[blockQTD, FlySpeedSlider, HoldToFastForwardSpeed, GroundItemsGroup, DisableBlueTunnel, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, MaxGroundItems, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])
+build_mod(on_enable=Enable, options=[blockQTD, FlySpeedSlider, HoldToFastForwardSpeed, GroundItemsGroup, DisableBlueTunnel, DisableVendorPreview, DeleteCorpses, CorpseDespawnTime, MaxGroundItems, ConsoleFontSize, LoadingScreenFadeTime, PhotoModeUnlock])

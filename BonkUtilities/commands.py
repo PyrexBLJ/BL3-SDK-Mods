@@ -2,8 +2,6 @@ from argparse import Namespace
 import unrealsdk
 from mods_base import get_pc, command, ENGINE
 
-activePlayer: int = -1
-
 @command("buhelp", description="list of available commands")
 def help(args: Namespace) -> None:
     print("Commands:\n[command] --help for more details on specific commands\nsend_mail [datatable] [rowname]\naddcurrency [currencytype] [amount]\nmaxlevel\ngiveitem [location] [itemserial]\ngiveitemfrompool [pool]\nmaxsdus\nenablegr\nsetguardianrank [rank]\nsetguardiantokens [tokens]\ngiveskillpoints [points]\ntogglemayhem [value]\ngetmayhemseed\nsetmayhemseed [seed]\ngivebooster [booster name/type]\nresetcurrentmission")
