@@ -1,12 +1,12 @@
 [project]
 name = "diamondchestconfig"
-version = "1.0.1"
+version = "1.0.2"
 authors = [{ name = "Pyrex" }]
-description = "Some diamond chest room options"
+description = "Configurable currencies and prices for the diamond loot room and golden key chest in sanctuary."
 
 [tool.sdkmod]
 name = "Diamond Loot Config"
 license = {name = "GPL3", url = "https://choosealicense.com/licenses/gpl-3.0/" }
 supported_games = ["BL3"]
 download = "https://github.com/PyrexBLJ/BL3-SDK-Mods/raw/refs/heads/main/diamondchestconfig/diamondchestconfig.sdkmod"
-version = "1.0.1"
+version = "1.0.2"
