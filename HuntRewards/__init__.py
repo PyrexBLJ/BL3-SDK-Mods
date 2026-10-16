@@ -124,19 +124,9 @@ def forbiddenTickHook(obj: UObject, args: WrappedStruct, ret: Any, func: BoundFu
                 BarrelQueue.value = 0
                 BarrelQueue.save()
             if AmIHost():
-                therearebarrelshere: bool = False
-                barrels: list = []
-                try:
-                    for explodyboi in unrealsdk.find_all("BP_ExplodingObject_Barrel_C", exact=False):
-                        if "default" not in str(explodyboi).lower():
-                            if explodyboi.OakDamage.GetCurrentHealth() > 0.0 and explodyboi.ExplodingObjectState == 0:
-                                barrels.append(explodyboi)
-                                therearebarrelshere = True
-                    barrels.clear()
-                except:
+                therearebarrelshere: bool = True
+                if str(ENGINE.GameViewport.World.CurrentLevel) in ["Level'/Game/Maps/MenuMap/MenuMap_P.MenuMap_P:PersistentLevel'", "Level'/Game/Maps/MenuMap/Loader.Loader:PersistentLevel'"]:
                     therearebarrelshere = False
-                    return None
-                
                 if therearebarrelshere and BarrelQueue.value > 0:
                     spawnABarrel(True, get_pc())
             else:

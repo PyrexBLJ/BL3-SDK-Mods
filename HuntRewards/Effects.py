@@ -1,4 +1,4 @@
-from .Utils import AmIHost, PlayerIsHost, InFrontOfPlayer, GetPlayerCharacter, Notify, BarrelQueue, FastSpeed, SlowSpeed, SellItemsOnDelete, TalkToLilithOpt, NoHud
+from .Utils import AmIHost, PlayerIsHost, InFrontOfPlayer, GetPlayerCharacter, Notify, SpawnInteractiveObject, BarrelQueue, FastSpeed, SlowSpeed, SellItemsOnDelete, TalkToLilithOpt, NoHud
 import random
 import unrealsdk #type: ignore
 from mods_base import get_pc, ENGINE #type: ignore
@@ -11,16 +11,8 @@ def spawnABarrel(skipqueue:bool, pc:UObject) -> None:
             BarrelQueue.value += 1
             BarrelQueue.save()
         barrels: list = []
-        try:
-            for explodyboi in unrealsdk.find_all("BP_ExplodingObject_Barrel_C", exact=False):
-                if "default" not in str(explodyboi).lower():
-                    if explodyboi.OakDamage.GetCurrentHealth() > 0.0 and explodyboi.ExplodingObjectState == 0:
-                        barrels.append(explodyboi)
-        except:
-            Notify(pc, "Hunt 'Rewards'", "Got a barrel waitin for ya", 3.5)
-            if pc != get_pc():
-                pc.ClientMessage("Failed To Spawn Barrel", "HR", float(pc.PlayerState.PlayerID))
-            return None
+        explodyboi = SpawnInteractiveObject("/Game/InteractiveObjects/ExplodingBarrels/Global/BP_ExplodingObject_Barrel_Proximity.BP_ExplodingObject_Barrel_Proximity_C", "/Game/InteractiveObjects/ExplodingBarrels/Global/BP_ExplodingObject_Barrel_Proximity", unrealsdk.make_struct("Vector", X=0, Y=0, Z=0), unrealsdk.make_struct("Rotator", Pitch=0, Yaw=0, Roll=0))
+        barrels.append(explodyboi)
 
         if len(barrels) == 0:
             Notify(pc, "Hunt 'Rewards'", "Got a barrel waitin for ya", 3.5)
